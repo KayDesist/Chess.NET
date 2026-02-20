@@ -50,13 +50,11 @@ namespace Chess.ViewModel.Game
         /// </summary>
         private BoardVM board;
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="ChessGameVM"/> class.
-        /// </summary>
-        /// <param name="updateSelector">The disambiguation mechanism if multiple updates are available for a target field.</param>
-        public ChessGameVM(Func<IList<Update>, Update> updateSelector)
+        // Added rulebook parameter so the mode selection window can pass in either
+        // a StandardRulebook or Chess960Rulebook before the game is created.
+        public ChessGameVM(IRulebook rulebook, Func<IList<Update>, Update> updateSelector)
         {
-            this.rulebook = new StandardRulebook();
+            this.rulebook = rulebook;
             this.Game = this.rulebook.CreateGame();
             this.board = new BoardVM(this.Game.Board);
             this.updateSelector = updateSelector;
@@ -232,7 +230,7 @@ namespace Chess.ViewModel.Game
         /// <param name="command">The <see cref="SetLastUpdateCommand"/> to be executed.</param>
         public void Visit(SetLastUpdateCommand command)
         {
-            // Not used at the moment, can be used to dispay the game history in the GUI.
+            // Not used at the moment, can be used to display the game history in the GUI.
         }
 
         /// <summary>

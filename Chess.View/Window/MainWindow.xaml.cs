@@ -20,32 +20,27 @@ namespace Chess.View.Window
     /// </summary>
     public partial class MainWindow : Window
     {
-        /// <summary>
-        /// Represents the view model of the window.
-        /// </summary>
-        private readonly ChessGameVM game;
+        private ChessGameVM game;
 
-        /// <summary>
-        /// Provides the functionality to extract promotions from a sequence of updates.
-        /// </summary>
         private readonly PromotionSelector promotionSelector;
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="MainWindow"/> class.
-        /// </summary>
         public MainWindow()
         {
             this.InitializeComponent();
-            this.game = new ChessGameVM(this.Choose);
             this.promotionSelector = new PromotionSelector();
+            this.StartNewGame();
+        }
+
+        // Shows the mode selection dialog then starts a new game with the chosen rulebook.
+        private void StartNewGame()
+        {
+            var modeWindow = new ModeWindow();
+            modeWindow.ShowDialog();
+
+            this.game = new ChessGameVM(modeWindow.SelectedRulebook, this.Choose);
             this.DataContext = this.game;
         }
 
-        /// <summary>
-        /// Translates a click on the chess board to a corresponding command to the view model.
-        /// </summary>
-        /// <param name="sender">The sender of the event.</param>
-        /// <param name="e">Additional information about the mouse click.</param>
         private void BoardMouseDown(object sender, MouseButtonEventArgs e)
         {
             var point = Mouse.GetPosition(sender as Canvas);
@@ -57,44 +52,35 @@ namespace Chess.View.Window
             this.game.Select(validRow, validColumn);
         }
 
-        /// <summary>
-        /// Event handler that closes the window.
-        /// </summary>
-        /// <param name="sender">The sender of the event.</param>
-        /// <param name="e">Additional information about the event.</param>
         private void ExitClick(object sender, EventArgs e)
         {
             this.Close();
         }
 
-        /// <summary>
-        /// Fires when a chess piece was visually removed from the chess board.
-        /// </summary>
-        /// <param name="sender">The sender of the event.</param>
-        /// <param name="e">Additional information about the event.</param>
+        // Re-opens the mode dialog when the user clicks New Game.
+        private void NewGameClick(object sender, RoutedEventArgs e)
+        {
+            this.StartNewGame();
+        }
+
         private void RemoveCompleted(object sender, EventArgs e)
         {
             this.game.Board.CleanUp();
         }
 
-        /// <summary>
-        /// Chooses a game state update from a list of possible game state updates.
-        /// </summary>
-        /// <param name="updates">The game state update to choose from.</param>
-        /// <returns>The chosen game state update.</returns>
         private Update Choose(IList<Update> updates)
         {
             if (updates.Count == 0)
             {
                 return null;
             }
-            
+
             if (updates.Count == 1)
             {
                 return updates[0];
             }
 
-            // If there are multiple choices, there must be a promotion.
+            // Multiple choices means a pawn promotion is available.
             var promotions = this.promotionSelector.Find(updates);
             var pieceWindow = new PieceWindow() { Owner = this };
             var selectedPiece = pieceWindow.Show(promotions.Keys);
